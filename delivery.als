@@ -1,26 +1,42 @@
-one sig Pizzaria{
+some sig Pizzaria{
 	motoboys: set Motoboy
 }
 
-sig Motoboy{}
+sig NumCadastro{}
+
+sig Motoboy{
+	regiao: one Regiao,
+	numCadastro: one NumCadastro
+}
 
 abstract sig Regiao{}
 
-one sig Norte extends Regiao{}
 
-one sig Sul extends Regiao{}
+one sig Norte extends Regiao{
+	pizzaria: one Pizzaria
+}
 
-one sig Leste extends Regiao{}
+one sig Sul extends Regiao{
+	pizzaria: one Pizzaria
+}
 
-one sig Oeste extends Regiao{}
+one sig Leste extends Regiao{
+	pizzaria: one Pizzaria
+}
 
-one sig Centro extends Regiao{}
+one sig Oeste extends Regiao{
+	pizzaria: one Pizzaria
+}
+
+one sig Centro extends Regiao{
+	pizzaria: one Pizzaria
+}
 
 fact{
 	all p:Pizzaria | #(p.motoboys) = 3
+	#Pizzaria = 5
 }
-
 
 pred show[]{}
 
-run show
+run show for 5
