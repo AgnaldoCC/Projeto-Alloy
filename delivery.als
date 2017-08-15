@@ -1,10 +1,10 @@
-some sig Pizzaria{
+sig Pizzaria{
 	motoboys: set Motoboy
+}{
+	#motoboys = 3
 }
 
-sig NumCadastro{}
-
-sig Cliente{
+some sig Cliente{
 	regiao: one Regiao
 }
 
@@ -13,37 +13,38 @@ sig Motoboy{
 	numCadastro: one NumCadastro
 }
 
-abstract sig Regiao{}
+sig NumCadastro{}
 
-one sig Norte extends Regiao{
+abstract sig Regiao{
 	pizzaria: one Pizzaria
 }
 
-one sig Sul extends Regiao{
-	pizzaria: one Pizzaria
+one sig Norte, Sul, Leste, Oeste, Centro extends Regiao{}
+
+
+fact {
+	all p:Pizzaria | one p.~pizzaria -- Toda região com exatamente uma pizzaria, sem repetições.
+	all m:Motoboy | one m.~motoboys -- Cada grupo de motoboys(3) relacionados apenas a uma pizzaria. 
+	all n:NumCadastro | one n.~numCadastro -- Cada motoboy com seu próprio num de cadastro.
+	all r:Regiao | r.pizzaria.motoboys.regiao = r -- Motoboys com a mesma região de sua pizzaria.
 }
 
-one sig Leste extends Regiao{
-	pizzaria: one Pizzaria
+assert regioesComDiferentesPizzarias{
+	no r1, r2: Regiao, p:Pizzaria | r1 != r2 && p in r1.pizzaria && p in r2.pizzaria 
 }
 
-one sig Oeste extends Regiao{
-	pizzaria: one Pizzaria
+assert semMotoboysIguais{
+	no p1, p2:Pizzaria, m:Motoboy | p1 != p2 && m in p1.motoboys && m in p2.motoboys
 }
 
-one sig Centro extends Regiao{
-	pizzaria: one Pizzaria
+assert semMesmoNumCadastro{
+	no m1, m2:Motoboy | m1 != m2 && m1.numCadastro = m2.numCadastro
 }
-
-fact{
-	all p:Pizzaria | #(p.motoboys) = 3
-	#Pizzaria = 5
-}
-
-fact{
-	#Cliente = 5
-}
+	
+check  regioesComDiferentesPizzarias for 15
+check semMotoboysIguais for 15
+check semMesmoNumCadastro for 15
 
 pred show[]{}
 
-run show for 5
+run show for 15 -- Obs: Ativar o Magic Layout para uma melhor visualização das relações.
