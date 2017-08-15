@@ -4,6 +4,15 @@ sig Pizzaria{
 	#motoboys = 3
 }
 
+some sig Cliente{
+	regiao: one Regiao
+}
+
+sig Motoboy{
+	regiao: one Regiao,
+	numCadastro: one NumCadastro
+}
+
 sig NumCadastro{}
 
 abstract sig Regiao{
