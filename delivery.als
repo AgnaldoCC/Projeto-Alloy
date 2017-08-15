@@ -1,3 +1,7 @@
+-------------------------------------------------------------------------
+		--	Assinaturas
+-------------------------------------------------------------------------
+
 sig Pizzaria{
 	motoboys: set Motoboy
 }{
@@ -21,6 +25,51 @@ abstract sig Regiao{
 
 one sig Norte, Sul, Leste, Oeste, Centro extends Regiao{}
 
+one sig CentralAtendimento{
+	motoboysCentral: set Motoboy,
+	listaEspera: set Cliente
+}
+
+-------------------------------------------------------------------------
+		--	Funções
+-------------------------------------------------------------------------
+
+fun getMotoboysCentral[c:CentralAtendimento] : set Motoboy{
+	c.motoboysCentral
+}
+
+fun regiaoCliente[c:Cliente] : one Regiao{
+	c.regiao
+}
+
+fun adicionaCentral[m: Motoboy, c:CentralAtendimento] : set Motoboy{
+	m + c.motoboysCentral
+}
+
+-------------------------------------------------------------------------
+		--	Predicados
+-------------------------------------------------------------------------
+
+pred temDisponivel[c:CentralAtendimento]{
+	no c.motoboysCentral
+}
+
+pred estaDisponivel[m:Motoboy, c:CentralAtendimento]{
+	!(m in c.motoboysCentral)
+}
+
+pred saoMesmaRegiao[m:Motoboy, c:Cliente]{
+	m.regiao = c.regiao
+}
+
+pred pedido[c:Cliente, m:Motoboy, ce:CentralAtendimento]{
+	(saoMesmaRegiao[m, c] and estaDisponivel[m, ce]) => adicionaCentral[m, ce]
+}
+
+
+-------------------------------------------------------------------------
+		--	Fatos
+-------------------------------------------------------------------------
 
 fact {
 	all p:Pizzaria | one p.~pizzaria -- Toda região com exatamente uma pizzaria, sem repetições.
@@ -28,6 +77,10 @@ fact {
 	all n:NumCadastro | one n.~numCadastro -- Cada motoboy com seu próprio num de cadastro.
 	all r:Regiao | r.pizzaria.motoboys.regiao = r -- Motoboys com a mesma região de sua pizzaria.
 }
+
+-------------------------------------------------------------------------
+		--	Asserts
+-------------------------------------------------------------------------
 
 assert regioesComDiferentesPizzarias{
 	no r1, r2: Regiao, p:Pizzaria | r1 != r2 && p in r1.pizzaria && p in r2.pizzaria 
@@ -40,10 +93,14 @@ assert semMotoboysIguais{
 assert semMesmoNumCadastro{
 	no m1, m2:Motoboy | m1 != m2 && m1.numCadastro = m2.numCadastro
 }
+
+-------------------------------------------------------------------------
+		--	Checks
+-------------------------------------------------------------------------
 	
-check  regioesComDiferentesPizzarias for 15
-check semMotoboysIguais for 15
-check semMesmoNumCadastro for 15
+--check  regioesComDiferentesPizzarias for 15
+--check semMotoboysIguais for 15
+--check semMesmoNumCadastro for 15
 
 pred show[]{}
 
