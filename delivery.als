@@ -80,7 +80,7 @@ pred pedido[c:Cliente, ce:CentralAtendimento]{
 	else c in adicionaListaDeEspera[c, ce])
 }
 
-pred pedidPorMotoboyo[c:Cliente, m:Motoboy, ce:CentralAtendimento]{
+pred pedirPorMotoboy[c:Cliente, m:Motoboy, ce:CentralAtendimento]{
 	(saoMesmaRegiao[m, c] and estaDisponivel[m, ce]) => m in adicionaCentral[m , ce] 
 	else c in adicionaListaDeEspera[c, ce]
 }
