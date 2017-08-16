@@ -26,7 +26,7 @@ abstract sig Regiao{
 one sig Norte, Sul, Leste, Oeste, Centro extends Regiao{}
 
 one sig CentralAtendimento{
-	motoboysCentral: set Motoboy,
+	emDelivery: set Motoboy,
 	listaDeEspera: set Cliente
 }
 
@@ -35,7 +35,7 @@ one sig CentralAtendimento{
 -------------------------------------------------------------------------
 
 fun getMotoboysCentral[c:CentralAtendimento] : set Motoboy{
-	c.motoboysCentral
+	c.emDelivery
 }
 
 fun getMotoboysRegiao[r:Regiao]: set Motoboy{
@@ -46,24 +46,21 @@ fun regiaoCliente[c:Cliente] : one Regiao{
 	c.regiao
 }
 
-fun adicionaCentral[m: Motoboy, c:CentralAtendimento] : set Motoboy{
-	m + c.motoboysCentral
+fun motoboyEmDelivery[m: Motoboy, c:CentralAtendimento] : set Motoboy{
+	m + c.emDelivery
 }
 
-fun adicionaListaDeEspera[c:Cliente, ce:CentralAtendimento]: set Cliente{
-	c+ ce.listaDeEspera
+fun clienteListaDeEspera[c:Cliente, ce:CentralAtendimento]: set Cliente{
+	c + ce.listaDeEspera
 }
 
 -------------------------------------------------------------------------
 		--	Predicados
 -------------------------------------------------------------------------
 
-pred temDisponivel[c:CentralAtendimento]{
-	no c.motoboysCentral
-}
 
-pred estaDisponivel[m:Motoboy, c:CentralAtendimento]{
-	!(m in c.motoboysCentral)
+pred estahDisponivel[m:Motoboy, c:CentralAtendimento]{
+	!(m in c.emDelivery)
 }
 
 pred saoMesmaRegiao[m:Motoboy, c:Cliente]{
@@ -71,18 +68,18 @@ pred saoMesmaRegiao[m:Motoboy, c:Cliente]{
 }
 
 pred estahEmDelivery[m:Motoboy, c:CentralAtendimento]{
-	m in c.motoboysCentral
+	m in c.emDelivery
 }
 
 pred pedido[c:Cliente, ce:CentralAtendimento]{
 	some m:getMotoboysRegiao[c.regiao] |(
-	estaDisponivel[m, ce] =>  m in adicionaCentral[m , ce]
-	else c in adicionaListaDeEspera[c, ce])
+	estahDisponivel[m, ce] =>  m in motoboyEmDelivery[m , ce]
+	else some m:Motoboy | estahDisponivel[m, ce] => m in motoboyEmDelivery[m , ce] )
 }
 
-pred pedirPorMotoboy[c:Cliente, m:Motoboy, ce:CentralAtendimento]{
-	(saoMesmaRegiao[m, c] and estaDisponivel[m, ce]) => m in adicionaCentral[m , ce] 
-	else c in adicionaListaDeEspera[c, ce]
+pred pedidoPorMotoboy[c:Cliente, m:Motoboy, ce:CentralAtendimento]{
+(saoMesmaRegiao[m, c] and estahDisponivel[m, ce]) => m in motoboyEmDelivery[m , ce] 
+	else c in clienteListaDeEspera[c, ce]
 }
 
 
@@ -91,12 +88,21 @@ pred pedirPorMotoboy[c:Cliente, m:Motoboy, ce:CentralAtendimento]{
 -------------------------------------------------------------------------
 
 fact {
-	all p:Pizzaria | one p.~pizzaria -- Toda região com exatamente uma pizzaria, sem repetições.
-	all m:Motoboy | one m.~motoboys -- Cada grupo de motoboys(3) relacionados apenas a uma pizzaria. 
-	all n:NumCadastro | one n.~numCadastro -- Cada motoboy com seu próprio num de cadastro.
-	all r:Regiao | r.pizzaria.motoboys.regiao = r -- Motoboys com a mesma região de sua pizzaria.
+	-- Toda região com exatamente uma pizzaria, sem repetições.
+	all p:Pizzaria | one p.~pizzaria
+	
+	-- Cada grupo de motoboys(3) relacionados apenas a uma pizzaria.
+	all m:Motoboy | one m.~motoboys  
+	
+	-- Cada motoboy com seu próprio num de cadastro.
+	all n:NumCadastro | one n.~numCadastro
+	
+	-- Motoboys com a mesma região de sua pizzaria.
+	all r:Regiao | r.pizzaria.motoboys.regiao = r 
+	
+	-- Se um cliente está na lista de espera, então todos os motoboys de sua região estão ocupados.
+	all ce:CentralAtendimento, c:Cliente, m:Motoboy | c in ce.listaDeEspera  && m.regiao = c.regiao => m in ce.emDelivery
 }
-
 -------------------------------------------------------------------------
 		--	Asserts
 -------------------------------------------------------------------------
@@ -113,19 +119,18 @@ assert semMesmoNumCadastro{
 	no m1, m2:Motoboy | m1 != m2 && m1.numCadastro = m2.numCadastro
 }
 
+	
+
 -------------------------------------------------------------------------
 		--	Checks
 -------------------------------------------------------------------------
 	
---check  regioesComDiferentesPizzarias for 15
---check semMotoboysIguais for 15
---check semMesmoNumCadastro for 15
+check  regioesComDiferentesPizzarias for 15
+check semMotoboysIguais for 15
+check semMesmoNumCadastro for 15
 
 
-
-
-//run { some c:Cliente, ce:CentralAtendimento |  pedido [c, ce]} for 15
 
 pred show[]{}
 
-run show for 15 -- Obs: Ativar o Magic Layout para uma melhor visualização das relações.
+run show for 15  -- Obs: Ativar o Magic Layout para uma melhor visualização das relações.
