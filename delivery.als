@@ -27,7 +27,7 @@ one sig Norte, Sul, Leste, Oeste, Centro extends Regiao{}
 
 one sig CentralAtendimento{
 	motoboysCentral: set Motoboy,
-	listaEspera: set Cliente
+	listaDeEspera: set Cliente
 }
 
 -------------------------------------------------------------------------
@@ -38,12 +38,20 @@ fun getMotoboysCentral[c:CentralAtendimento] : set Motoboy{
 	c.motoboysCentral
 }
 
+fun getMotoboysRegiao[r:Regiao]: set Motoboy{
+	r.pizzaria.motoboys
+}
+
 fun regiaoCliente[c:Cliente] : one Regiao{
 	c.regiao
 }
 
 fun adicionaCentral[m: Motoboy, c:CentralAtendimento] : set Motoboy{
 	m + c.motoboysCentral
+}
+
+fun adicionaListaDeEspera[c:Cliente, ce:CentralAtendimento]: set Cliente{
+	c+ ce.listaDeEspera
 }
 
 -------------------------------------------------------------------------
@@ -62,8 +70,19 @@ pred saoMesmaRegiao[m:Motoboy, c:Cliente]{
 	m.regiao = c.regiao
 }
 
-pred pedido[c:Cliente, m:Motoboy, ce:CentralAtendimento]{
-	(saoMesmaRegiao[m, c] and estaDisponivel[m, ce]) => adicionaCentral[m, ce]
+pred estahEmDelivery[m:Motoboy, c:CentralAtendimento]{
+	m in c.motoboysCentral
+}
+
+pred pedido[c:Cliente, ce:CentralAtendimento]{
+	some m:getMotoboysRegiao[c.regiao] |(
+	estaDisponivel[m, ce] =>  m in adicionaCentral[m , ce]
+	else c in adicionaListaDeEspera[c, ce])
+}
+
+pred pedidPorMotoboyo[c:Cliente, m:Motoboy, ce:CentralAtendimento]{
+	(saoMesmaRegiao[m, c] and estaDisponivel[m, ce]) => m in adicionaCentral[m , ce] 
+	else c in adicionaListaDeEspera[c, ce]
 }
 
 
@@ -98,9 +117,14 @@ assert semMesmoNumCadastro{
 		--	Checks
 -------------------------------------------------------------------------
 	
---check  regioesComDiferentesPizzarias for 15
---check semMotoboysIguais for 15
---check semMesmoNumCadastro for 15
+check  regioesComDiferentesPizzarias for 15
+check semMotoboysIguais for 15
+check semMesmoNumCadastro for 15
+
+
+
+
+//run { some c:Cliente, ce:CentralAtendimento |  pedido [c, ce]} for 15
 
 pred show[]{}
 
