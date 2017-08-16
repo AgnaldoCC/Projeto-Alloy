@@ -117,9 +117,9 @@ assert semMesmoNumCadastro{
 		--	Checks
 -------------------------------------------------------------------------
 	
-check  regioesComDiferentesPizzarias for 15
-check semMotoboysIguais for 15
-check semMesmoNumCadastro for 15
+--check  regioesComDiferentesPizzarias for 15
+--check semMotoboysIguais for 15
+--check semMesmoNumCadastro for 15
 
 
 
